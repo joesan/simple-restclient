@@ -38,19 +38,23 @@ trait RestClientUtil {
 }
 
 class RestClientImpl extends RestClient with RestClientUtil {
+  
+  private def getRequestURL: RequestBuilder = {
+    if(isHttps) url(REST_HTTP_ADDRESS + "/" + resource).as_!(user, pass)
+    else        url(REST_HTTP_ADDRESS + "/" + resource)
+  }
+  
+  private def handleFailure() = ???
+  
+  private def handleSuccess() = ???
+  
+  private def shutdown = if (http.isComplete) Http.shutdown
 
   def post(reqURL: String, requestBody: String): (Int, String) = {
-
-    def getRequestURL: RequestBuilder = {
-      if(isHttps) url(REST_HTTP_ADDRESS + "/" + resource).as_!(user, pass)
-      else        url(REST_HTTP_ADDRESS + "/" + resource)
-    }
 
     val request = getRequestURL(reqURL) << requestBody
 
     val http = Http(request OK as.String)
-
-    def shutdown = if (http.isComplete) Http.shutdown
 
     http.onFailure {
       case e: Throwable => shutdown
@@ -65,19 +69,12 @@ class RestClientImpl extends RestClient with RestClientUtil {
 
   def get(resource: String, requestParam: Option[Seq[(String, String)]] = None): String = {
 
-    def getRequestURL: RequestBuilder = {
-      if(isHttps) url(REST_HTTP_ADDRESS + "/" + resource).as_!(user, pass)
-      else        url(REST_HTTP_ADDRESS + "/" + resource)
-    }
-
     val request = requestParam match {
       case Some(params) => getRequestURL(reqURL) <<? params
       case None =>         getRequestURL(reqURL)
     }
 
     val http = Http(request OK as.String)
-
-    def shutdown = if (http.isComplete) Http.shutdown
 
     http.onFailure {
       case e: Throwable => shutdown
